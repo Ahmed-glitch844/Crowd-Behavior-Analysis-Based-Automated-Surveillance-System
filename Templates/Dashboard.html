@@ -1,0 +1,106 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'node_modules/bootstrap/dist/css/bootstrap.css' %}">
+    <title>Main Dashboard</title>
+    <script id="Script" type="text/javascript" src ="{% static 'node_modules/bootstrap/dist/js/bootstrap.bundle.js' %}"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-secondary">
+        <div class="container-fluid">
+          <a class="navbar-brand" aria-current="dashboard" href="dashboard">Recorded Video</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" aria-current="logs" href="logs">Logs</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" aria-current="live" href="live">Live classification</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <h5>Date:<span class="navbar-text" id="date"> </span></h5>
+          <h5>Time: <span class="navbar-text" id="time"></span></h5>
+          <!-- <h5>Duration: <span class="navbar-text" id="duration"></span></h5> -->
+          <span class="navbar-text">Welcome {{username}}  </span> 
+            <form class="d-flex" role="search" action ="Logout" method="post"> 
+              <button class="btn btn-outline-light" id="logout" name="logoutBtn" type="submit"> {% csrf_token %} Logout</button>
+            </form>
+          </div>
+        </div>
+      </nav>
+
+    <br>
+    <div class="container">
+      <form action="Classify" enctype="multipart/form-data" method="post">
+        {% csrf_token %}
+        <center>
+      
+          <div>
+            <video width ="820" height="680" autoplay muted controls="controls" id="vid" name="vid" src="{{f_path}}"> </video><br>
+          </div>
+          <input class="form" id ='Val' type="text" value="Not Classified yet" aria-label="readonly input example">
+
+          <br><br>
+          <div class="input-group" style="width: 350px;">
+            <input name="Insert" class="form-control" type="file" accept="video/*" id="Insert" onchange="Clear()">
+            <button class="btn btn-primary" type="submit" value="submit" id="Submit">Submit</button>
+          </div>
+      </form>
+      </center>
+    </div>
+    
+    <script type="text/javascript" src ="{% static 'css/time_session.js' %}"></script>
+  <script>
+    var Video = document.getElementById("vid")
+    var counter = 0;
+    var fp = Video.src;
+    var filename = fp.replace(/^.*[\\\/]/, '');
+    JsonObject = {
+      "username": "{{username}}",
+      "video": filename,
+      "timestamp": 0
+    }
+      setInterval(function () {
+      counter++;
+      if (Video.currentTime < Video.duration) {
+    fetch('assign_value')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("Val").value = data['value'];
+      })
+    if(document.getElementById("Val").value == "Violence detected"){
+          var img = "{%static 'image/Violence.jpg'%}";
+          document.body.style.backgroundImage = "url('"+ img +"')";
+          JsonObject.timestamp=Video.currentTime;
+        
+    fetch('write_to_json', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify(JsonObject)
+  })
+    }
+    else{
+      var imgInit = "{%static 'image/Initial.jpg'%}";
+          document.body.style.backgroundImage = "url('"+ imgInit +"')";
+    }
+    }}, 300);
+  </script>
+  <style>
+    body{
+      background-image: url("{% static 'image/Initial.jpg' %}");
+    }
+  </style>
+</body>
+</html>
