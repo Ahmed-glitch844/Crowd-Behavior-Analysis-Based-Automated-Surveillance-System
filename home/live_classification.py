@@ -8,7 +8,7 @@ import cv2
 import threading
 import numpy as np
 from .prediction import DenseNet
-from.send_Alert import send_alert
+from.gen_Clip import gen_clip
 video_buffer = queue.Queue()
 
 
@@ -29,15 +29,25 @@ def gen(user_email):
     ])
     values = ['Normal', 'Violence detected']
     img = []
+    img1 = []
+    f_list = []
+    width=None
+    height=None
     cap = cv2.VideoCapture(0)
+    width=None
+    height=None
     # t_live = threading.Thread(target=collect, args=[])
     # t_live.start()
     cap.set(cv2.CAP_PROP_FPS, 30)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Use 'H264' for MP4 format
+    output_path = f'output_clip.avi'  # Specify the full path for the output clip with .mp4 extension
+    frame_count = 0
     while True:
         ret, frame = cap.read()
         frame = cv2.flip(frame, 1)
         # video_buffer.put(frame)
         f = frame
+        frame1 = frame
         if not ret:
             video_buffer.queue.clear()
             break
@@ -47,6 +57,7 @@ def gen(user_email):
         f = Image.fromarray(f)
         f = transform(f)
         img.append(f)
+        img1.append(frame)
         if len(img) == 16:
             # p = Pred_live(img)
             batch = torch.stack(img, dim=0)
@@ -65,12 +76,16 @@ def gen(user_email):
                 output = output[0]
                 output = output[0]
             if values[output] == "Violence detected":
-                frame = cv2.rectangle(frame, (0, 0), (720-1,
+                frame1 = cv2.rectangle(frame, (0, 0), (720-1,
                                                       480-1), (0, 0, 255), 20)
-                send_alert(user_email, frame)
+                f_list+=img1
+                gen_clip(f_list)
             img = []
-        _, jpeg = cv2.imencode('.jpg', frame)
+            img1 = []
+        _, jpeg = cv2.imencode('.jpg', frame1)
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
         # frame = video_buffer.get()
-        if not cap.isOpened():
-            break
+        # if not cap.isOpened():
+        #     gen_clip(f_list)
+        #     cv2.destroyAllWindows()     
+        #     break
