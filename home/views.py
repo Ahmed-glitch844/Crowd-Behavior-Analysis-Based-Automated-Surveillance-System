@@ -139,6 +139,18 @@ def load_video(request):
     f_path = store.url(f_path)
     context = {'f_path': f_path, 'username': request.user.username}
     print(User.username)
+    file_name = os.path.basename(f_path)
+
+# Create a folder with the extracted file name
+    folder_path = os.path.join(r"C:\Users\ahmed\Documents\python_projects\FYP_frontEnd\demo\ScreenShots\Recorded", file_name)
+
+    if not os.path.exists(f_path):
+        os.makedirs(folder_path)
+        v_folder = os.path.join(folder_path, "Violent")
+        os.mkdirs(v_folder)
+        n_folder = os.path.join(folder_path, "NonViolent")
+        os.mkdirs(n_folder)
+
     return render(request, 'Dashboard.html', context)
 
 

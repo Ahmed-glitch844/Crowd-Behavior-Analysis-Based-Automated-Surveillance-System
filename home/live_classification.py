@@ -39,15 +39,14 @@ def gen(user_email):
     # t_live = threading.Thread(target=collect, args=[])
     # t_live.start()
     cap.set(cv2.CAP_PROP_FPS, 30)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Use 'H264' for MP4 format
-    output_path = f'output_clip.avi'  # Specify the full path for the output clip with .mp4 extension
     frame_count = 0
+    v_path = r'C:\Users\ahmed\Documents\python_projects\FYP_frontEnd\demo\ScreenShots\Live\Violent'
+    n_path = r'C:\Users\ahmed\Documents\python_projects\FYP_frontEnd\demo\ScreenShots\Live\NonViolent'
     while True:
         ret, frame = cap.read()
         frame = cv2.flip(frame, 1)
         # video_buffer.put(frame)
         f = frame
-        frame1 = frame
         if not ret:
             video_buffer.queue.clear()
             break
@@ -57,7 +56,6 @@ def gen(user_email):
         f = Image.fromarray(f)
         f = transform(f)
         img.append(f)
-        img1.append(frame)
         if len(img) == 16:
             # p = Pred_live(img)
             batch = torch.stack(img, dim=0)
@@ -78,8 +76,10 @@ def gen(user_email):
             if values[output] == "Violence detected":
                 frame1 = cv2.rectangle(frame, (0, 0), (720-1,
                                                       480-1), (0, 0, 255), 20)
-                f_list+=img1
-                gen_clip(f_list)
+                cv2.imwrite(os.path.join(v_path, f"frame_{frame_count}.png"), frame1)
+                    else:
+                        cv2.imwrite(os.path.join(n_path, f"frame_{frame_count}.png"), frame)
+                
             img = []
             img1 = []
         _, jpeg = cv2.imencode('.jpg', frame1)

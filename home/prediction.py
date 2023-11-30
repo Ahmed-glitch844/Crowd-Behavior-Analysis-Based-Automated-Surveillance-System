@@ -163,10 +163,13 @@ model.eval()
 
 
 def Pred(path):
+
     values = ['Normal', 'Violence detected']
-    dir = r"C:\Users\ahmed\Documents\python_projects\FYP_frontEnd\demo\media"
     file_path = os.path.join(settings.MEDIA_ROOT, path)
-    print(file_path)
+    file_name = os.path.basename(file_path)
+    folder_path = os.path.join(r"C:\Users\ahmed\Documents\python_projects\FYP_frontEnd\demo\ScreenShots\Recorded", file_name)
+    v_folder = os.path.join(folder_path, "Violent")
+    n_folder = os.path.join(folder_path, "NonViolent")
     batch_size = 16
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize(171),
@@ -175,7 +178,7 @@ def Pred(path):
         torchvision.transforms.Normalize(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
-
+    frame_count=0
     frames = []
     cap = cv2.VideoCapture(file_path)
     while (cap.isOpened()):
@@ -183,6 +186,7 @@ def Pred(path):
         ret, frame = cap.read()
     # Transform the frame
         if ret == True:
+            frame_count += 1
             frame = Image.fromarray(frame)
             frame = transform(frame)
     # Add the frame to the list
@@ -218,7 +222,10 @@ def Pred(path):
                     output = output[0]
                     values[output]
                     print(values[output])
-                    print(output)
+                    if values[output] == 'Violence detected':
+                        cv2.imwrite(os.path.join(v_folder, f"frame_{frame_count}.png"), frame)
+                    else:
+                        cv2.imwrite(os.path.join(n_folder, f"frame_{frame_count}.png"), frame)
                     #dict = {"value": values[output]}
 
                     with open(r'C:\Users\ahmed\Documents\python_projects\FYP_frontEnd\demo\static\css\var.js', 'r') as f:
